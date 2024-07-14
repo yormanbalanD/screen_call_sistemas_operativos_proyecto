@@ -2,6 +2,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:flutter/material.dart';
 import 'package:video_call/signalling.services.dart';
 import 'package:socket_io_client/socket_io_client.dart';
+import 'package:video_call/connection/client.dart';
 
 class CallScreen extends StatefulWidget {
   final String ipAddress;
@@ -31,8 +32,9 @@ class _CallScreenState extends State<CallScreen> {
 
     // initializing renderers
 
-    socket = SignallingService.instance
-        .initClient(websocketUrl: "http://192.168.1.101:5000");
+    socket =
+        ClientIO.instance.init(websocketUrl: "http://${widget.ipAddress}:5000");
+
     _setupPeerConnection();
     super.initState();
   }
@@ -69,7 +71,7 @@ class _CallScreenState extends State<CallScreen> {
       await _rtcPeerConnection!.setRemoteDescription(
         RTCSessionDescription(
           data["sdpAnswer"]["sdp"],
-          data["sdpAnswer"]["type"],
+          "answer",
         ),
       );
 
@@ -98,7 +100,7 @@ class _CallScreenState extends State<CallScreen> {
 
   _leaveCall() {
     _rtcPeerConnection!.close();
-    SignallingService.instance.close();
+    ClientIO.instance.close();
     Navigator.pop(context);
   }
 

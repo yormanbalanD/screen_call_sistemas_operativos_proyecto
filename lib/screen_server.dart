@@ -1,12 +1,12 @@
 import 'dart:io';
 
-import 'package:socket_io_client/socket_io_client.dart';
+import 'package:socket_io/socket_io.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:video_call/signalling.services.dart';
+import 'package:video_call/connection/server.dart';
 
 class ServerScreen extends StatefulWidget {
   final dynamic offer;
@@ -22,10 +22,12 @@ class _ServerScreenState extends State<ServerScreen> {
 
   dynamic incomingSDPOffer;
 
-  Socket? socket;
+  Server? _server;
+
   final _rtcVideoRenderer = RTCVideoRenderer();
   MediaStream? _mediaStream;
   RTCPeerConnection? _rtcPeerConnection;
+  String? _callerId;
 
   List<RTCIceCandidate> rtcIceCadidate = [];
   String _ipLocal = "";
@@ -70,14 +72,36 @@ class _ServerScreenState extends State<ServerScreen> {
 
     _getIpLocal();
 
-    socket = SignallingService.instance
-        .init(websocketUrl: "http://192.168.1.101:5000");
+    _server = ServerIO.instance.init();
 
-    SignallingService.instance.socket!.on("newCall", (data) {
-      if (mounted) {
-        // set SDP Offer of incoming call
-        setState(() => incomingSDPOffer = data);
-      }
+    _server!.on("connection", (socket) {
+      String callerId = socket.handshake['query']['callerId'];
+      socket.join(callerId);
+
+      socket.on("makeCall", (data) {
+        var sdpOffer = data['sdpOffer'];
+
+        if (mounted) {
+          // set SDP Offer of incoming call
+          setState(() => incomingSDPOffer = {
+                "callerId": callerId,
+                "sdpOffer": sdpOffer,
+              });
+        }
+      });
+
+      socket!.on("IceCandidate", (data) {
+        String candidate = data["iceCandidate"]["candidate"];
+        String sdpMid = data["iceCandidate"]["id"];
+        int sdpMLineIndex = data["iceCandidate"]["label"];
+
+        // add iceCandidate
+        _rtcPeerConnection!.addCandidate(RTCIceCandidate(
+          candidate,
+          sdpMid,
+          sdpMLineIndex,
+        ));
+      });
     });
 
     _setupPeerConnection();
@@ -120,29 +144,14 @@ class _ServerScreenState extends State<ServerScreen> {
           incomingSDPOffer["sdpOffer"]["type"]),
     );
 
-    // listen for Remote IceCandidate
-    socket!.on("IceCandidate", (data) {
-      String candidate = data["iceCandidate"]["candidate"];
-      String sdpMid = data["iceCandidate"]["id"];
-      int sdpMLineIndex = data["iceCandidate"]["label"];
-
-      // add iceCandidate
-      _rtcPeerConnection!.addCandidate(RTCIceCandidate(
-        candidate,
-        sdpMid,
-        sdpMLineIndex,
-      ));
-    });
-
     // create SDP answer
     RTCSessionDescription answer = await _rtcPeerConnection!.createAnswer();
 
     // set SDP answer as localDescription for peerConnection
     _rtcPeerConnection!.setLocalDescription(answer);
 
-    // send SDP answer to remote peer over signalling
-    socket!.emit("answerCall", {
-      "callerId": incomingSDPOffer["callerId"],
+    _server!.to('2').emit("callAnswered", {
+      "callee": '1',
       "sdpAnswer": answer.toMap(),
     });
 
@@ -154,7 +163,7 @@ class _ServerScreenState extends State<ServerScreen> {
   _leaveCall() {
     _rtcPeerConnection!.close();
 
-    SignallingService.instance.close();
+    ServerIO.instance.close();
 
     Navigator.pop(context);
 
