@@ -53,15 +53,13 @@ void onStart(ServiceInstance service) async {
 class VideoCallApp extends StatelessWidget {
   VideoCallApp({super.key});
 
-  // signalling server url
-  final String websocketUrl = "http://192.168.1.12:5000";
-
   @override
   Widget build(BuildContext context) {
     // init signalling service
 
     // return material app
     return MaterialApp(
+      debugShowCheckedModeBanner: true,
       darkTheme: ThemeData.dark().copyWith(
         useMaterial3: true,
         colorScheme: const ColorScheme.dark(),

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:flutter/material.dart';
 import 'package:video_call/signalling.services.dart';
@@ -18,6 +20,7 @@ class _CallScreenState extends State<CallScreen> {
   bool isAudioOn = true, isVideoOn = true, isFrontCameraSelected = true;
 
   Socket? socket;
+  String _callerId = "";
 
   final _remoteRTCVideoRenderer = RTCVideoRenderer();
 
@@ -31,9 +34,10 @@ class _CallScreenState extends State<CallScreen> {
     _remoteRTCVideoRenderer.initialize();
 
     // initializing renderers
+    _callerId = generarStringNumerico(6);
 
-    socket =
-        ClientIO.instance.init(websocketUrl: "http://${widget.ipAddress}:5000");
+    socket = ClientIO.instance.init(
+        websocketUrl: "http://${widget.ipAddress}:5000", callerId: _callerId);
 
     _setupPeerConnection();
     super.initState();
@@ -104,78 +108,42 @@ class _CallScreenState extends State<CallScreen> {
     Navigator.pop(context);
   }
 
-  // _toggleMic() {
-  //   // change status
-  //   isAudioOn = !isAudioOn;
-  //   // enable or disable audio track
-  //   _localStream?.getAudioTracks().forEach((track) {
-  //     track.enabled = isAudioOn;
-  //   });
-  //   setState(() {});
-  // }
-
-  // _toggleCamera() {
-  //   // change status
-  //   isVideoOn = !isVideoOn;
-
-  //   // enable or disable video track
-  //   _localStream?.getVideoTracks().forEach((track) {
-  //     track.enabled = isVideoOn;
-  //   });
-  //   setState(() {});
-  // }
-
-  // _switchCamera() {
-  //   // change status
-  //   isFrontCameraSelected = !isFrontCameraSelected;
-
-  //   // switch camera
-  //   _localStream?.getVideoTracks().forEach((track) {
-  //     // ignore: deprecated_member_use
-  //     track.switchCamera();
-  //   });
-  //   setState(() {});
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text("P2P Call App"),
+        title: Text(widget.ipAddress),
       ),
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
-              child: Stack(children: [
-                RTCVideoView(
-                  _remoteRTCVideoRenderer,
-                  objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+              child: Padding(
+                padding: const EdgeInsets.all(15),
+                child: Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration:
+                      BoxDecoration(color: Colors.white.withOpacity(0.5)),
+                  child: Stack(children: [
+                    RTCVideoView(
+                      _remoteRTCVideoRenderer,
+                      objectFit:
+                          RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                    ),
+                  ]),
                 ),
-              ]),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
-                    icon: Icon(isAudioOn ? Icons.mic : Icons.mic_off),
-                    onPressed: () {},
-                  ),
-                  IconButton(
                     icon: const Icon(Icons.call_end),
-                    iconSize: 30,
+                    iconSize: 40,
                     onPressed: _leaveCall,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.cameraswitch),
-                    onPressed: () {},
-                  ),
-                  IconButton(
-                    icon: Icon(isVideoOn ? Icons.videocam : Icons.videocam_off),
-                    onPressed: () {},
                   ),
                 ],
               ),
@@ -191,5 +159,25 @@ class _CallScreenState extends State<CallScreen> {
     // _remoteRTCVideoRenderer.dispose();
     // _remoteStream.dispose();
     super.dispose();
+  }
+
+  String generarStringNumerico(int i) {
+// Definimos los números que queremos incluir en el string
+    const numeros = '123456789';
+
+    // Creamos un objeto Random para generar números aleatorios
+    Random random = Random();
+
+    // Creamos un string vacío para almacenar el string numérico aleatorio
+    String stringNumerico = '';
+
+    // Generamos 6 dígitos aleatorios y los agregamos al string
+    for (int i = 0; i < 6; i++) {
+      int indiceAleatorio = random.nextInt(numeros.length);
+      stringNumerico += numeros[indiceAleatorio];
+    }
+
+    // Devolvemos el string numérico aleatorio
+    return stringNumerico;
   }
 }

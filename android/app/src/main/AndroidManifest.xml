@@ -19,7 +19,7 @@
 
 
     <application
-        android:label="Anydesk"
+        android:label="Copied Screen"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 

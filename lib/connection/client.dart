@@ -7,11 +7,11 @@ class ClientIO {
   ClientIO._();
   static final instance = ClientIO._();
 
-  init({required String websocketUrl}) {
+  init({required String websocketUrl, required String callerId}) {
     // init Socket
     socket = io(websocketUrl, {
       "transports": ['websocket'],
-      "query": {"callerId": '2'}
+      "query": {"callerId": callerId}
     });
 
     return socket;

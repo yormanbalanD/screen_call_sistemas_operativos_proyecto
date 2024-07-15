@@ -48,7 +48,7 @@ class _JoinScreenState extends State<JoinScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text("AniDesk"),
+        title: const Text("Copied Screen"),
       ),
       body: SafeArea(
         child: Stack(
@@ -62,17 +62,37 @@ class _JoinScreenState extends State<JoinScreen> {
                     TextField(
                       controller: remoteIPTextEditingController,
                       decoration: const InputDecoration(
-                        hintText: 'Ingresa la dirección IP de la sala a unirte',
+                        hintText: 'Direccion IP. Ej: 192.168.1.100',
                         border: OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
-                        _joinCall();
+                        if (remoteIPTextEditingController.text.isNotEmpty) {
+                          _joinCall();
+                        } else {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('Error'),
+                                content: const Text('Ingresa una dirección IP'),
+                                actions: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('Ok'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        }
                       },
                       style: styleButton,
-                      child: const Text('Unirse a la Sala'),
+                      child: const Text('Unirse a llamada'),
                     ),
                   ],
                 ),

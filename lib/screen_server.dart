@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:socket_io/socket_io.dart';
 
 import 'package:flutter/material.dart';
@@ -41,6 +43,7 @@ class _ServerScreenState extends State<ServerScreen> {
 
   void _getIpLocal() async {
     for (var interface in await NetworkInterface.list()) {
+      print(interface.addresses);
       _ipLocal = interface.addresses[0].address;
       setState(() {});
       return;
@@ -150,7 +153,7 @@ class _ServerScreenState extends State<ServerScreen> {
     // set SDP answer as localDescription for peerConnection
     _rtcPeerConnection!.setLocalDescription(answer);
 
-    _server!.to('2').emit("callAnswered", {
+    _server!.to(incomingSDPOffer["callerId"]).emit("callAnswered", {
       "callee": '1',
       "sdpAnswer": answer.toMap(),
     });
@@ -160,12 +163,28 @@ class _ServerScreenState extends State<ServerScreen> {
     });
   }
 
-  _leaveCall() {
-    _rtcPeerConnection!.close();
-
-    ServerIO.instance.close();
-
-    Navigator.pop(context);
+  _leaveCall(BuildContext ctx) {
+    showDialog(
+        context: ctx,
+        builder: (context) {
+          return CupertinoAlertDialog(
+            title: const Text('Advertencia'),
+            content: const Text(
+                "¿Desea terminar la llamada? Al hacerlo se cerrara la aplicacion."),
+            actions: [
+              CupertinoDialogAction(
+                  child: const Text('Si'),
+                  onPressed: () {
+                    SystemNavigator.pop();
+                  }),
+              CupertinoDialogAction(
+                  child: const Text('Cancelar'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  }),
+            ],
+          );
+        });
 
     setState(() {
       incomingSDPOffer = null;
@@ -191,22 +210,23 @@ class _ServerScreenState extends State<ServerScreen> {
                 "IP LOCAL: $_ipLocal",
                 style: styleText,
               ),
+              const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Column(children: [
-                    const SizedBox(height: 20),
+                  Row(children: [
                     ElevatedButton.icon(
-                        onPressed: () {
-                          _toggleMic();
-                        },
-                        label: Icon(
-                          (_isMicOn ? Icons.mic : Icons.mic_off),
-                          size: 40,
-                          color: (_isMicOn ? Colors.green : Colors.red),
-                        ),
-                        style: circularButton),
-                    const SizedBox(height: 20),
+                      onPressed: () {
+                        _leaveCall(context);
+                      },
+                      label: const Icon(
+                        Icons.call_end,
+                        size: 40,
+                        color: Colors.red,
+                      ),
+                      style: circularButton,
+                    ),
+                    const SizedBox(width: 20),
                     ElevatedButton.icon(
                         onPressed: () {
                           _toggleScreenShare();
@@ -220,41 +240,13 @@ class _ServerScreenState extends State<ServerScreen> {
                         ),
                         style: circularButton),
                   ]),
-                  const SizedBox(
-                    width: 30,
-                  ),
-                  Column(children: [
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        _leaveCall();
-                      },
-                      label: const Icon(
-                        Icons.call_end,
-                        size: 40,
-                        color: Colors.red,
-                      ),
-                      style: circularButton,
-                    )
-                  ])
                 ],
-              ),
-              Expanded(
-                child: Stack(children: [
-                  Padding(
-                    padding: const EdgeInsets.all(25),
-                    child: RTCVideoView(
-                      _rtcVideoRenderer,
-                      objectFit:
-                          RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-                    ),
-                  ),
-                ]),
               ),
               if (incomingSDPOffer != null)
                 Positioned(
                   child: ListTile(
                     title: Text(
-                      "Incoming Call from ${incomingSDPOffer["callerId"]}",
+                      "Llamada entrante desde ${incomingSDPOffer["callerId"]}",
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -293,5 +285,7 @@ class _ServerScreenState extends State<ServerScreen> {
       track.stop();
     });
     _mediaStream?.dispose();
+    _rtcPeerConnection!.close();
+    ServerIO.instance.close();
   }
 }

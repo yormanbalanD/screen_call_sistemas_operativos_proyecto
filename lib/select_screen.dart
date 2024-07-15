@@ -59,7 +59,7 @@ class _SelectScreenState extends State<SelectScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text("AniDesk"),
+        title: const Text("Copied Screen"),
       ),
       body: SafeArea(
         child: Stack(
@@ -70,12 +70,15 @@ class _SelectScreenState extends State<SelectScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 75),
+                    Image.asset("assets/images/logoApp.png", height: 175),
+                    const SizedBox(height: 50),
                     ElevatedButton(
                       onPressed: () async {
                         _joinCall();
                       },
                       style: styleButton,
-                      child: const Text('Unirse a una Sala'),
+                      child: const Text('Ver Pantalla'),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
@@ -83,8 +86,9 @@ class _SelectScreenState extends State<SelectScreen> {
                         _createRoom();
                       },
                       style: styleButton,
-                      child: const Text('Crear una Sala'),
+                      child: const Text('Compartir Pantalla'),
                     ),
+                    Flexible(child: Container()),
                   ],
                 ),
               ),
