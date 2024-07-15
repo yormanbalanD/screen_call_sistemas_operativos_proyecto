@@ -78,7 +78,7 @@ class _SelectScreenState extends State<SelectScreen> {
                         _joinCall();
                       },
                       style: styleButton,
-                      child: const Text('Ver Pantalla'),
+                      child: const Text('Vista de Pantalla'),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(

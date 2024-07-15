@@ -91,6 +91,28 @@ class _ServerScreenState extends State<ServerScreen> {
                 "sdpOffer": sdpOffer,
               });
         }
+        showDialog(
+            context: context,
+            builder: (context) {
+              return CupertinoAlertDialog(
+                title: const Text('Solucitud Entrante'),
+                content: const Text(
+                    "Un usuario desea observar su pantalla. ¿Desea aceptar?"),
+                actions: [
+                  CupertinoDialogAction(
+                      child: const Text('Aceptar'),
+                      onPressed: () {
+                        _acceptCall();
+                        Navigator.pop(context);
+                      }),
+                  CupertinoDialogAction(
+                      child: const Text('Rechazar'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      }),
+                ],
+              );
+            });
       });
 
       socket!.on("IceCandidate", (data) {
@@ -242,33 +264,6 @@ class _ServerScreenState extends State<ServerScreen> {
                   ]),
                 ],
               ),
-              if (incomingSDPOffer != null)
-                Positioned(
-                  child: ListTile(
-                    title: Text(
-                      "Llamada entrante desde ${incomingSDPOffer["callerId"]}",
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.call_end),
-                          color: Colors.redAccent,
-                          onPressed: () {
-                            setState(() => incomingSDPOffer = null);
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.call),
-                          color: Colors.greenAccent,
-                          onPressed: () {
-                            _acceptCall();
-                          },
-                        )
-                      ],
-                    ),
-                  ),
-                )
             ],
           ),
         ),

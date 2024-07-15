@@ -92,7 +92,7 @@ class _JoinScreenState extends State<JoinScreen> {
                         }
                       },
                       style: styleButton,
-                      child: const Text('Unirse a llamada'),
+                      child: const Text('Unirse a pantalla'),
                     ),
                   ],
                 ),
