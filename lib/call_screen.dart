@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:flutter/material.dart';
 import 'package:video_call/signalling.services.dart';
@@ -38,6 +40,43 @@ class _CallScreenState extends State<CallScreen> {
 
     socket = ClientIO.instance.init(
         websocketUrl: "http://${widget.ipAddress}:5000", callerId: _callerId);
+
+    socket!.on("disconnect", (data) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return CupertinoAlertDialog(
+              title: const Text('Servidor Desconectado'),
+              content: const Text(
+                  "El servidor se desconectó de la llamada. Desea salir de esta pantalla?"),
+              actions: [
+                CupertinoDialogAction(
+                    child: const Text('Si'),
+                    onPressed: () {
+                      SystemNavigator.pop();
+                    }),
+                CupertinoDialogAction(
+                    child: const Text('Cancelar'),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    }),
+              ],
+            );
+          });
+    });
+
+    socket!.on("connect_error", (data) {
+      socket!.disconnect();
+      showDialog(
+          context: context,
+          builder: (context) {
+            return CupertinoAlertDialog(
+              title: const Text('Error'),
+              content: const Text(
+                  "No se pudo conectar con el servidor. Comprueba si la dirección IP es correcta."),
+            );
+          });
+    });
 
     _setupPeerConnection();
     super.initState();
@@ -103,9 +142,28 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   _leaveCall() {
-    _rtcPeerConnection!.close();
-    ClientIO.instance.close();
-    Navigator.pop(context);
+    showDialog(
+        context: context,
+        builder: (context) {
+          return CupertinoAlertDialog(
+            title: const Text('Advertencia'),
+            content: const Text(
+                "¿Desea terminar la llamada? Al hacerlo se cerrara la aplicacion."),
+            actions: [
+              CupertinoDialogAction(
+                  child: const Text('Si'),
+                  onPressed: () {
+                    socket!.disconnect();
+                    SystemNavigator.pop();
+                  }),
+              CupertinoDialogAction(
+                  child: const Text('Cancelar'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  }),
+            ],
+          );
+        });
   }
 
   @override

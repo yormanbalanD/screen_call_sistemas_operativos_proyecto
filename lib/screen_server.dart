@@ -115,6 +115,30 @@ class _ServerScreenState extends State<ServerScreen> {
             });
       });
 
+      socket.on("disconnect", (socket) {
+        showDialog(
+            context: context,
+            builder: (context) {
+              return CupertinoAlertDialog(
+                title: const Text('Usuario Desconectado'),
+                content: const Text(
+                    "El usuario se desconectó de la llamada. Desea terminar la llamada?"),
+                actions: [
+                  CupertinoDialogAction(
+                      child: const Text('Si'),
+                      onPressed: () {
+                        SystemNavigator.pop();
+                      }),
+                  CupertinoDialogAction(
+                      child: const Text('Cancelar'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      }),
+                ],
+              );
+            });
+      });
+
       socket!.on("IceCandidate", (data) {
         String candidate = data["iceCandidate"]["candidate"];
         String sdpMid = data["iceCandidate"]["id"];
