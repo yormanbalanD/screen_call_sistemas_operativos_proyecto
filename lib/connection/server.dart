@@ -5,6 +5,7 @@ class ServerIO {
   static final instance = ServerIO._();
   Server? _server;
 
+  // Inicia el servidor y lo mantiene en escucha por espera de respuesta
   init() {
     _server = Server();
 

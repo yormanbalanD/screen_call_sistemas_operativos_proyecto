@@ -71,7 +71,7 @@ class _SelectScreenState extends State<SelectScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: 75),
-                    Image.asset("assets/images/logoApp.png", height: 175),
+                    // Image.asset("assets/images/logoApp.png", height: 175),
                     const SizedBox(height: 50),
                     ElevatedButton(
                       onPressed: () async {

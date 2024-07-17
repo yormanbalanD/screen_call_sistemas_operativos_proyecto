@@ -7,6 +7,7 @@ class ClientIO {
   ClientIO._();
   static final instance = ClientIO._();
 
+  // Inicia la conexion con el servidor, el webSocketUrl  es una URL HTTP en el puerto 5000, y el callerId es el id del cliente, este ID se genera aleatoriamente
   init({required String websocketUrl, required String callerId}) {
     // init Socket
     socket = io(websocketUrl, {

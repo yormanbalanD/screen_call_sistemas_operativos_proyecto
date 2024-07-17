@@ -77,10 +77,13 @@ class _ServerScreenState extends State<ServerScreen> {
 
     _server = ServerIO.instance.init();
 
+    // Crea un evento de escucha para cuando se conecte un cliente al servidor, el parametro socket se refiere a los datos del cliente
     _server!.on("connection", (socket) {
       String callerId = socket.handshake['query']['callerId'];
       socket.join(callerId);
 
+      // Crea un evento de escucha para ese cliente en especifico para cuando este solicite una llamada, el parametro data se refiere a
+      // datos que el cliente envia al servidor
       socket.on("makeCall", (data) {
         var sdpOffer = data['sdpOffer'];
 
@@ -115,6 +118,7 @@ class _ServerScreenState extends State<ServerScreen> {
             });
       });
 
+      // Crea un evento de escucha para ese cliente en especifico para cuando el cliente se desconecta, el parametro socket se refiere a los datos del cliente
       socket.on("disconnect", (socket) {
         showDialog(
             context: context,
@@ -139,6 +143,8 @@ class _ServerScreenState extends State<ServerScreen> {
             });
       });
 
+      // Crea un evento de escucha para ese cliente en especifico para cuando el cliente esta mandando los IceCandidates al servidor, para hacer la vinculacion con WEBRTC
+      // Un IceCandidate es la informacion que hay que proveer a WebRTC sobre el cliente que se va a conectar con el servidor
       socket!.on("IceCandidate", (data) {
         String candidate = data["iceCandidate"]["candidate"];
         String sdpMid = data["iceCandidate"]["id"];

@@ -41,6 +41,7 @@ class _CallScreenState extends State<CallScreen> {
     socket = ClientIO.instance.init(
         websocketUrl: "http://${widget.ipAddress}:5000", callerId: _callerId);
 
+    // Crea un evento de escucha para cuando el servidor se desconecta del cliente, para cerrar la conexion con el servidor
     socket!.on("disconnect", (data) {
       showDialog(
           context: context,
@@ -65,6 +66,7 @@ class _CallScreenState extends State<CallScreen> {
           });
     });
 
+    // Crea un evento de escucha cuando el cliente tiene un error de conexion con el servidor
     socket!.on("connect_error", (data) {
       socket!.disconnect();
       showDialog(
@@ -109,6 +111,7 @@ class _CallScreenState extends State<CallScreen> {
     _rtcPeerConnection!.onIceCandidate =
         (RTCIceCandidate candidate) => rtcIceCadidates.add(candidate);
 
+    // Crea un evento de escucha para cuando el cliente recibe una respuesta de la llamada, esta respuesta es si acepto o no la llamada
     socket!.on("callAnswered", (data) async {
       // set SDP answer as remoteDescription for peerConnection
       await _rtcPeerConnection!.setRemoteDescription(
@@ -120,6 +123,7 @@ class _CallScreenState extends State<CallScreen> {
 
       // send iceCandidate generated to remote peer over signalling
       for (RTCIceCandidate candidate in rtcIceCadidates) {
+        // Despues de recibir una respuesta afirmativa de la llamada, el cliente envia el ICE Candidate a la otra parte
         socket!.emit("IceCandidate", {
           "calleeId": '1',
           "iceCandidate": {
@@ -134,6 +138,7 @@ class _CallScreenState extends State<CallScreen> {
     RTCSessionDescription offer = await _rtcPeerConnection!.createOffer();
     await _rtcPeerConnection!.setLocalDescription(offer);
 
+    // El cliente emite la llamada al servidor, esta llamada es un Offer de WEBRTC, la cual necesita una respuesta para ser aceptada del servidor
     socket!.emit('makeCall', {
       "calleeId": '1',
       "sdpOffer": offer.toMap(),
